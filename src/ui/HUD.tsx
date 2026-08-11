@@ -252,7 +252,11 @@ const HUD: React.FC = () => {
               gap: 2,
             }}
           >
-            <span style={{ fontSize: 28 }}>🪃</span>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 26 C6 26 8 14 20 8 C26 5 29 6 28 10 C27 14 22 14 18 16 C14 18 12 22 14 26 C16 30 10 32 6 26Z"
+                fill="#c8832a" stroke="#7a4010" strokeWidth="1.5" strokeLinejoin="round"/>
+              <path d="M6 26 C8 22 14 20 18 16" stroke="#ffcc88" strokeWidth="1.2" fill="none"/>
+            </svg>
             <span style={{ fontSize: 11, color: 'rgba(255,230,160,0.9)' }}>ARREMESS</span>
           </CtrlBtn>
 
