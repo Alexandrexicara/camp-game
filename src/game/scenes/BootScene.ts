@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { BaseScene } from '@/kit/BaseScene';
 import { AssetManifest, FallbackMap } from '@/kit/AssetsManager';
+import { initMinijogoSDK } from '@/lib/minijogo-sdk';
 
 const MANIFEST: AssetManifest = {
   images: [
@@ -380,6 +381,9 @@ export class BootScene extends BaseScene {
     this.anims.create({ key: 'caiman_walk_anim',  frames: frames('caiman_walk',  2), frameRate: 3,  repeat: -1 });
     this.anims.create({ key: 'eagle_fly_anim',    frames: frames('eagle_fly',    2), frameRate: 5,  repeat: -1 });
     this.anims.create({ key: 'archer_idle_anim',  frames: frames('archer_idle',  2), frameRate: 2,  repeat: -1 });
+
+    // Inicializar SDK Minijogo (não bloqueia — roda em paralelo)
+    initMinijogoSDK().catch(() => { /* SDK indisponível fora da plataforma */ });
 
     this.scene.start('MenuScene');
   }

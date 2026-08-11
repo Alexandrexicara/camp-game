@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { BaseScene } from '@/kit/BaseScene';
 import { useGameStore } from '@/store/useGameStore';
+import { showRewardedVideo, isRewardedAvailable } from '@/lib/minijogo-sdk';
 
 export class GameOverScene extends BaseScene {
   private _isVictory = false;
@@ -110,7 +111,6 @@ export class GameOverScene extends BaseScene {
     } else if (!isVictory) {
       // Game over — retry the same level or go to menu
       this.createButton(width / 2 - 100, btnY, `↺ Fase ${currentLevel} de Novo`, 0x1e8e1e, () => {
-        // Reset lives, set the current level, keep score
         useGameStore.setState({ lives: 3, level: currentLevel, gameState: 'PLAYING' });
         this.cameras.main.fadeOut(400, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -122,6 +122,27 @@ export class GameOverScene extends BaseScene {
         this.cameras.main.fadeOut(400, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('MenuScene'));
       });
+
+      // Botão de vídeo recompensado — ganhar vida extra (só aparece se SDK disponível)
+      if (isRewardedAvailable()) {
+        const rewY = btnY - 58;
+        const rewBg = this.add.rectangle(width / 2, rewY, 290, 44, 0xcc8800, 1)
+          .setStrokeStyle(2, 0xffee88, 0.9).setDepth(10).setInteractive({ useHandCursor: true });
+        this.add.text(width / 2, rewY, '▶ ASSISTIR ANÚNCIO → +1 VIDA', {
+          fontFamily: 'monospace', fontSize: '13px', color: '#fff',
+        }).setOrigin(0.5).setDepth(11);
+        rewBg.on('pointerover', () => rewBg.setFillStyle(0xddaa00));
+        rewBg.on('pointerout',  () => rewBg.setFillStyle(0xcc8800));
+        rewBg.on('pointerdown', () => {
+          rewBg.disableInteractive();
+          showRewardedVideo(() => {
+            const { lives } = useGameStore.getState();
+            useGameStore.setState({ lives: Math.min(lives + 1, 3) });
+          }).then((watched) => {
+            if (!watched) rewBg.setInteractive({ useHandCursor: true });
+          });
+        });
+      }
     } else {
       // Final victory
       this.createButton(width / 2, btnY, '↩ Menu Principal', 0x224488, () => {

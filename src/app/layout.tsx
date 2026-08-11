@@ -22,6 +22,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Minijogo SDK — carrega antes do jogo iniciar */}
+        <Script
+          src="https://sdk0.minigame.vip/js/1.0/minigame-sdk.debug.js"
+          strategy="beforeInteractive"
+        />
         {process.env.NODE_ENV === 'production' && (
           <Script
             async

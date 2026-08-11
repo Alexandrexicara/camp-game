@@ -12,6 +12,7 @@ import { Archer } from '../entities/Archer';
 import { Boomerang } from '../entities/Boomerang';
 import { Arrow } from '../entities/Arrow';
 import { LEVEL, DEATH_Y } from '../config';
+import { showInterstitial } from '@/lib/minijogo-sdk';
 
 // ─── Level data types ──────────────────────────────────────────────────────
 
@@ -592,11 +593,15 @@ export class GameScene extends BaseScene {
     try { this.audio.play('victory'); } catch { /* no-op */ }
     this.cameras.main.fadeOut(1000, 255, 255, 180);
     this.cameras.main.once('camerafadeoutcomplete', () => {
-      if (this.currentLevel < LEVELS.length) {
-        this.scene.start('GameOverScene', { victory: true, nextLevel: this.currentLevel + 1 });
-      } else {
-        this.scene.start('GameOverScene', { victory: true, nextLevel: null });
-      }
+      const goNext = () => {
+        if (this.currentLevel < LEVELS.length) {
+          this.scene.start('GameOverScene', { victory: true, nextLevel: this.currentLevel + 1 });
+        } else {
+          this.scene.start('GameOverScene', { victory: true, nextLevel: null });
+        }
+      };
+      // Mostrar intersticial entre fases; continua mesmo se falhar
+      showInterstitial().then(goNext).catch(goNext);
     });
   }
 
