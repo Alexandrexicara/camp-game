@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="description" content="Animal Camp — uma aventura de plataforma na floresta." />
+    <title>Animal Camp</title>
+    <style>
+      html, body, #root { width:100%; height:100%; margin:0; padding:0; overflow:hidden; background:#1a1a2e; }
+      body { position:fixed; inset:0; touch-action:none; -webkit-user-select:none; user-select:none; }
+      canvas { display:block; }
+    </style>
+    <script>
+      // Depois que a Khelogy aprovar o jogo, substitua pelo Game ID do painel.
+      window.KHELOGY_GAME_ID = 'YOUR_GAME_ID';
+    </script>
+    <script src="https://khelogy.com/sdk/khelogy-sdk.v1.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>
