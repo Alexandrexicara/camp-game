@@ -24,6 +24,7 @@ export class GameOverScene extends BaseScene {
     const nextLevel = this._nextLevel;
     const currentLevel = this._currentLevel;
     const isFinalLevel = isVictory && nextLevel === null;
+    try { this.audio.play(isVictory ? 'victory' : 'defeat'); } catch { /* no-op */ }
 
     // Background
     if (this.textures.exists('bg_forest')) {
@@ -161,8 +162,8 @@ export class GameOverScene extends BaseScene {
     this.add.text(x, y, label, {
       fontFamily: 'monospace', fontSize: '15px', color: '#fff',
     }).setOrigin(0.5).setDepth(11);
-    bg.on('pointerover', () => bg.setFillStyle(color + 0x181818));
+    bg.on('pointerover', () => { bg.setFillStyle(color + 0x181818); this.audio.play('select'); });
     bg.on('pointerout',  () => bg.setFillStyle(color));
-    bg.on('pointerdown', onClick);
+    bg.on('pointerdown', () => { this.audio.play('confirm'); onClick(); });
   }
 }
