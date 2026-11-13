@@ -1,0 +1,13 @@
+{
+  "title": "Animal Camp",
+  "description": "Uma aventura retrô em pixel art pela floresta. Explore o acampamento, colete itens e enfrente desafios.",
+  "applicationName": "Animal Camp",
+  "keywords": [
+    "Animal Camp",
+    "jogo",
+    "plataforma",
+    "pixel art",
+    "Phaser"
+  ],
+  "manifest": "/manifest.json"
+}
