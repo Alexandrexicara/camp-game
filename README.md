@@ -34,6 +34,12 @@ pnpm start
 4. Configure `DATABASE_URL` somente quando o banco PostgreSQL for ativado. O jogo não exige banco para iniciar.
 5. Publique o site. Cada push na branch `main` poderá disparar uma nova publicação quando a integração Git estiver ativa.
 
+## Integração AppLixir
+
+Para consultar relatórios, configure na Netlify as variáveis secretas `APPLIXIR_REPORTING_API_KEY` (chave de relatório `axk_live` do AppLixir) e `APPLIXIR_REPORTS_ADMIN_TOKEN` (token privado criado para proteger a rota). Ambas devem ter escopo de Functions e Runtime. Não use a chave UUID exibida como identificador da API de relatórios nem publique credenciais no repositório.
+
+A rota protegida é `/api/applixir/reports`. Envie o token no cabeçalho `x-admin-token`; para listar os sites cadastrados, use `?report=sites`. Para consultar totais de um site, use `?report=totals&siteIds=ID_DO_SITE`.
+
 ## Banco de dados (opcional)
 
 O projeto já inclui Drizzle ORM e o driver PostgreSQL. Configure `DATABASE_URL` com uma URL PostgreSQL antes de executar os comandos `db:*`. Não coloque credenciais reais no GitHub; use as variáveis de ambiente da hospedagem.
