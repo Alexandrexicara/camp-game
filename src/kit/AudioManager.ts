@@ -438,9 +438,14 @@ export class AudioManager {
   // ═══════════════════════════════════════════════════════════════
 
   private ensureContext(): AudioContext | null {
-    if (this.ctx && this.ctx.state !== 'closed') return this.ctx;
+    if (this.ctx && this.ctx.state !== 'closed') {
+      // Browsers suspend Web Audio until the first user gesture.
+      if (this.ctx.state === 'suspended') void this.ctx.resume().catch(() => undefined);
+      return this.ctx;
+    }
     try {
       this.ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      if (this.ctx.state === 'suspended') void this.ctx.resume().catch(() => undefined);
       return this.ctx;
     } catch {
       return null;
