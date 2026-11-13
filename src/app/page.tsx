@@ -15,6 +15,8 @@ export default function Home() {
         <GameWrapper />
       </div>
 
+      <div id="applixir-ad-container" aria-live="polite" />
+
       {/* z-index: 100 — React HUD & touch controls, above canvas */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 100, pointerEvents: 'none' }}>
         <HUD />
