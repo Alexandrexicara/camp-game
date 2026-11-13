@@ -385,6 +385,7 @@ export class GameScene extends BaseScene {
     this.levelDef = LEVELS[idx];
     useGameStore.getState().setLevel(this.currentLevel);
     useGameStore.getState().setGameState('PLAYING');
+    try { this.audio.play('round_start'); } catch { /* no-op */ }
 
     const worldW = this.levelDef.worldWidth;
     const worldH = LEVEL.worldHeight;
@@ -409,6 +410,7 @@ export class GameScene extends BaseScene {
     this.player.setThrowCallback((x, y, dirX) => {
       const boom = new Boomerang(this, x, y, dirX, this.player);
       this.boomerangs.push(boom);
+      try { this.audio.play('whoosh'); } catch { /* no-op */ }
     });
 
     const pc = this.player as unknown as Phaser.Types.Physics.Arcade.ArcadeColliderType;
@@ -440,6 +442,7 @@ export class GameScene extends BaseScene {
       // Stomp: falling + above enemy centre
       if (pb.velocity.y > 0 && this.player.y < (enemy as any).y - 10) {
         enemy.stomp();
+        try { this.audio.play('stomp'); } catch { /* no-op */ }
         this.player.stomp();
         useGameStore.getState().addScore(50);
         this.popupText((enemy as any).x, (enemy as any).y - 22, '+50', '#ff8844');
@@ -617,13 +620,16 @@ export class GameScene extends BaseScene {
       if (useGameStore.getState().gameState === 'GAMEOVER') {
         this.cameras.main.fadeOut(600, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
-          this.scene.start('GameOverScene', { victory: false, nextLevel: null, currentLevel: this.currentLevel });
+          showInterstitial().finally(() => {
+            this.scene.start('GameOverScene', { victory: false, nextLevel: null, currentLevel: this.currentLevel });
+          });
         });
         return;
       } else {
         this.player.setPosition(80, 400);
         (this.player.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0);
         this.player.setAlpha(1);
+      try { this.audio.play('land'); } catch { /* no-op */ }
       }
     }
 
