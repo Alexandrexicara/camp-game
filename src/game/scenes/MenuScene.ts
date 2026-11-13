@@ -12,6 +12,8 @@ export class MenuScene extends BaseScene {
   create() {
     const { width, height } = this.scale;
 
+    try { this.audio.play('select'); } catch { /* no-op */ }
+
     // Background
     if (this.textures.exists('bg_forest')) {
       this.bgTile = this.add.tileSprite(0, 0, width, height, 'bg_forest').setOrigin(0, 0);
@@ -58,7 +60,7 @@ export class MenuScene extends BaseScene {
 
     btnBg.on('pointerover', () => { btnBg.setFillStyle(0x44bb44); btnText.setStyle({ color: '#ffff00' }); });
     btnBg.on('pointerout', () => { btnBg.setFillStyle(0x2d8e2d); btnText.setStyle({ color: '#ffffff' }); });
-    btnBg.on('pointerdown', () => this.startGame());
+    btnBg.on('pointerdown', () => { this.audio.play('confirm'); this.startGame(); });
 
     // Keyboard start
     this.input.keyboard?.once('keydown-SPACE', () => this.startGame());
@@ -140,6 +142,7 @@ export class MenuScene extends BaseScene {
   }
 
   private startGame() {
+    this.audio.play('round_start');
     this.cameras.main.fadeOut(400, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
       useGameStore.getState().reset();
