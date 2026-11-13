@@ -35,6 +35,18 @@ interface FBInstantLike {
   quit(): void;
 }
 
+interface KhelogySDKLike {
+  init(options: { gameId: string }): Promise<void>;
+  showAd(type: 'rewarded'): Promise<boolean | void>;
+}
+
+declare global {
+  interface Window {
+    KhelogySDK?: KhelogySDKLike;
+    KHELOGY_GAME_ID?: string;
+  }
+}
+
 // ── Estado interno dos ads ───────────────────────────────────────────────────
 let sdkInitialized = false;
 let interstitialInstance: AdInstance | null = null;
@@ -45,8 +57,25 @@ let interstitialInFlight: Promise<void> | null = null;
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
 export async function initMinijogoSDK(): Promise<void> {
-  if (sdkInitialized || !hasFBInstant()) return;
+  if (sdkInitialized) return;
 
+  // Khelogy HTML5 publisher SDK (used only in the Khelogy export).
+  if (!hasFBInstant() && typeof window !== 'undefined' && window.KhelogySDK) {
+    const gameId = window.KHELOGY_GAME_ID;
+    if (!gameId || gameId === 'YOUR_GAME_ID') {
+      console.info('[Khelogy SDK] Add the Game ID supplied in the publisher dashboard.');
+      return;
+    }
+    try {
+      await window.KhelogySDK.init({ gameId });
+      sdkInitialized = true;
+    } catch (e) {
+      console.warn('[Khelogy SDK] init error:', e);
+    }
+    return;
+  }
+
+  if (!hasFBInstant()) return;
   try {
     const fb = getFBInstant()!;
     await fb.initializeAsync();
@@ -89,6 +118,9 @@ async function preloadRewarded(): Promise<void> {
 
 // ── Mostrar intersticial (entre fases) ───────────────────────────────────────
 export async function showInterstitial(): Promise<void> {
+  // Khelogy currently serves preroll/container ads automatically. Its published
+  // SDK documents rewarded video, not forced interstitial placements.
+  if (typeof window !== 'undefined' && window.KhelogySDK && !hasFBInstant()) return;
   if (!sdkInitialized) return;
   // Evita duas chamadas simultâneas na mesma transição, sem bloquear anúncios
   // legítimos em mortes ou mudanças de fase distintas.
@@ -119,6 +151,19 @@ export async function showRewardedVideo(
 ): Promise<boolean> {
   if (!sdkInitialized) return false;
 
+  // Khelogy rewarded video: only grant the extra life after a completed ad.
+  if (typeof window !== 'undefined' && window.KhelogySDK && !hasFBInstant()) {
+    try {
+      const completed = await window.KhelogySDK.showAd('rewarded');
+      if (completed === false) return false;
+      onRewarded();
+      return true;
+    } catch (e) {
+      console.warn('[Khelogy SDK] rewarded ad error:', e);
+      return false;
+    }
+  }
+
   try {
     if (!rewardedInstance) await preloadRewarded();
     if (!rewardedInstance) return false;
@@ -139,6 +184,9 @@ export async function showRewardedVideo(
 
 // ── Verificar se rewarded está disponível ────────────────────────────────────
 export function isRewardedAvailable(): boolean {
+  if (typeof window !== 'undefined' && window.KhelogySDK && !hasFBInstant()) {
+    return sdkInitialized;
+  }
   return sdkInitialized && rewardedInstance !== null;
 }
 
