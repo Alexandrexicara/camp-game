@@ -1,0 +1,64 @@
+name: Build Khelogy HTML5 ZIP
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'khelogy/**'
+      - 'src/**'
+      - 'public/assets/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.khelogy.config.ts'
+      - '.github/workflows/build-khelogy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-game:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Build standalone HTML5 game
+        run: pnpm run build:khelogy
+
+      - name: Validate package entry point and size
+        run: |
+          test -f dist-khelogy/index.html
+          test -d dist-khelogy/assets
+          SIZE=$(du -sm dist-khelogy | cut -f1)
+          echo "Uncompressed package size: ${SIZE} MB"
+          test "$SIZE" -le 150
+
+      - name: Create upload ZIP with index.html at root
+        run: |
+          cd dist-khelogy
+          zip -qr ../animal-camp-khelogy.zip .
+          cd ..
+          unzip -l animal-camp-khelogy.zip | head -30
+          unzip -Z1 animal-camp-khelogy.zip | grep -qx 'index.html'
+
+      - name: Upload Khelogy package
+        uses: actions/upload-artifact@v4
+        with:
+          name: animal-camp-khelogy
+          path: animal-camp-khelogy.zip
+          if-no-files-found: error
+          retention-days: 30
