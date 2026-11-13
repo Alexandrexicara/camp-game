@@ -35,6 +35,13 @@ interface FBInstantLike {
   quit(): void;
 }
 
+interface AppLixirStatus { type?: string }
+interface AppLixirOptions {
+  apiKey: string;
+  injectionElementId: string;
+  adStatusCallbackFn: (status: AppLixirStatus) => void;
+  adErrorCallbackFn: (error: unknown) => void;
+}
 interface KhelogySDKLike {
   init(options: { gameId: string }): Promise<void>;
   showAd(type: 'rewarded'): Promise<boolean | void>;
@@ -42,6 +49,7 @@ interface KhelogySDKLike {
 
 declare global {
   interface Window {
+    initializeAndOpenPlayer?: (options: AppLixirOptions) => void;
     KhelogySDK?: KhelogySDKLike;
     KHELOGY_GAME_ID?: string;
   }
@@ -149,6 +157,39 @@ export async function showInterstitial(): Promise<void> {
 export async function showRewardedVideo(
   onRewarded: () => void,
 ): Promise<boolean> {
+  const appLixirKey = process.env.NEXT_PUBLIC_APPLIXIR_SDK_KEY;
+  if (typeof window !== 'undefined' && appLixirKey && window.initializeAndOpenPlayer) {
+    return new Promise<boolean>((resolve) => {
+      let settled = false;
+      const finish = (completed: boolean) => {
+        if (settled) return;
+        settled = true;
+        resolve(completed);
+      };
+      try {
+        window.initializeAndOpenPlayer!({
+          apiKey: appLixirKey,
+          injectionElementId: 'applixir-ad-container',
+          adStatusCallbackFn: (status) => {
+            if (status?.type === 'complete') {
+              onRewarded();
+              finish(true);
+            } else if (['skipped', 'manuallyEnded', 'allAdsCompleted', 'consentDeclined'].includes(status?.type ?? '')) {
+              finish(false);
+            }
+          },
+          adErrorCallbackFn: (error) => {
+            console.warn('[AppLixir] rewarded ad error:', error);
+            finish(false);
+          },
+        });
+      } catch (error) {
+        console.warn('[AppLixir] unable to open rewarded ad:', error);
+        finish(false);
+      }
+    });
+  }
+
   if (!sdkInitialized) return false;
 
   // Khelogy rewarded video: only grant the extra life after a completed ad.
@@ -184,6 +225,7 @@ export async function showRewardedVideo(
 
 // ── Verificar se rewarded está disponível ────────────────────────────────────
 export function isRewardedAvailable(): boolean {
+  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_APPLIXIR_SDK_KEY && window.initializeAndOpenPlayer) return true;
   if (typeof window !== 'undefined' && window.KhelogySDK && !hasFBInstant()) {
     return sdkInitialized;
   }
