@@ -40,11 +40,8 @@ let sdkInitialized = false;
 let interstitialInstance: AdInstance | null = null;
 let rewardedInstance: AdInstance | null = null;
 
-// Tempo de primeira exibição (30s após início do jogo)
-let gameStartTime = 0;
-const FIRST_INTERSTITIAL_DELAY_MS = 30_000;
-const INTERSTITIAL_MIN_INTERVAL_MS = 40_000;
-let lastInterstitialTime = 0;
+// Cada transição solicitada pelo jogo pode exibir um intersticial.
+let interstitialInFlight: Promise<void> | null = null;
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
 export async function initMinijogoSDK(): Promise<void> {
@@ -55,8 +52,6 @@ export async function initMinijogoSDK(): Promise<void> {
     await fb.initializeAsync();
     await fb.startGameAsync();
     sdkInitialized = true;
-    gameStartTime = Date.now();
-
     // Pré-carregar intersticial e rewarded
     await Promise.allSettled([
       preloadInterstitial(),
@@ -95,26 +90,27 @@ async function preloadRewarded(): Promise<void> {
 // ── Mostrar intersticial (entre fases) ───────────────────────────────────────
 export async function showInterstitial(): Promise<void> {
   if (!sdkInitialized) return;
+  // Evita duas chamadas simultâneas na mesma transição, sem bloquear anúncios
+  // legítimos em mortes ou mudanças de fase distintas.
+  if (interstitialInFlight) return interstitialInFlight;
 
-  const now = Date.now();
-  // Respeitar delay inicial e intervalo mínimo
-  if (now - gameStartTime < FIRST_INTERSTITIAL_DELAY_MS) return;
-  if (now - lastInterstitialTime < INTERSTITIAL_MIN_INTERVAL_MS) return;
-
-  try {
-    if (!interstitialInstance) await preloadInterstitial();
-    if (!interstitialInstance) return;
-
-    await interstitialInstance.showAsync();
-    lastInterstitialTime = Date.now();
-    interstitialInstance = null;
-
-    // Já pré-carrega o próximo
-    setTimeout(preloadInterstitial, 2000);
-  } catch (e) {
-    console.warn('[Minijogo SDK] show interstitial error:', e);
-    interstitialInstance = null;
-  }
+  interstitialInFlight = (async () => {
+    try {
+      if (!interstitialInstance) await preloadInterstitial();
+      if (!interstitialInstance) return;
+      const currentAd = interstitialInstance;
+      interstitialInstance = null;
+      await currentAd.showAsync();
+    } catch (e) {
+      console.warn('[Minijogo SDK] show interstitial error:', e);
+      interstitialInstance = null;
+    } finally {
+      interstitialInFlight = null;
+      // Pré-carrega o próximo anúncio sem atrasar a continuação do jogo.
+      setTimeout(() => { void preloadInterstitial(); }, 1500);
+    }
+  })();
+  return interstitialInFlight;
 }
 
 // ── Mostrar vídeo recompensado ────────────────────────────────────────────────
