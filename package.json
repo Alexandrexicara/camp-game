@@ -20,7 +20,8 @@
     "preview": "opennextjs-cloudflare build && wrangler dev",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "build:khelogy": "vite build --config vite.khelogy.config.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.1",
@@ -48,6 +49,8 @@
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
     "typescript": "~5.9.3",
-    "wrangler": "^4.86.0"
+    "wrangler": "^4.86.0",
+    "vite": "^6.4.1",
+    "@vitejs/plugin-react": "^4.7.0"
   }
 }
