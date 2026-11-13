@@ -1,10 +1,11 @@
 {
-  "name": "template",
+  "name": "animal-camp",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "packageManager": "pnpm@10.33.4",
   "engines": {
+    "node": ">=20.9.0",
     "pnpm": "10.33.4"
   },
   "scripts": {
@@ -29,10 +30,12 @@
     "postgres": "^3.4.8",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "server-only": "^0.0.1",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250109.0",
+    "@netlify/plugin-nextjs": "^5.15.5",
     "@opennextjs/cloudflare": "^1.19.10",
     "drizzle-kit": "^0.31.9",
     "@tailwindcss/postcss": "^4.2.2",
