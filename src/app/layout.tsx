@@ -22,6 +22,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        {/* AppLixir v6 rewarded video SDK */}
+        <Script src="https://cdn.applixir.com/applixir.app.v6.1.0.js" strategy="beforeInteractive" />
         {/* Minijogo SDK — carrega antes do jogo iniciar */}
         <Script
           src="https://sdk0.minigame.vip/js/1.0/minigame-sdk.debug.js"
